@@ -4,7 +4,7 @@
 
 """# Extracting and Preprocessing"""
 
-pip install pdfplumber
+# pip install pdfplumber
 
 # from google.colab import drive
 # drive.mount('/content/drive')
@@ -26,7 +26,7 @@ def get_report(doc):
     date_pattern = re.compile(r'\DATE\b\D*(\d{2}/\d{2}/\d{4})')
     DATE_F = False
 
-    metrics_pattern = re.compile(r'(DOL|MD/TVD|DFS):\D*(\d+)')
+    metrics_pattern = re.compile(r'(DOL|MD/TVD|MD|DFS):\D*(\d+)')
 
     # Iterate through each page
     columns = ["FROM", "TO", "HRS", "PHASE", "CODE", "OPERATIONS"]
