@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
 
+""" TO DO:
+1. STRICT MODE - JSON
+2. Add NPT to the table
+2. Finish prompt but adding parameters f string
+3. Add more feautures from reports such as bit types
+4. API key enviroment?
+
+"""
 
 
 """# Extracting and Preprocessing"""
@@ -29,15 +37,16 @@ def get_report(doc):
     metrics_pattern = re.compile(r'(DOL|MD/TVD|MD|DFS):\D*(\d+)')
 
     # Iterate through each page
-    columns = ["FROM", "TO", "HRS", "PHASE", "CODE", "OPERATIONS"]
+    columns = ["FROM", "TO", "HRS", "PHASE", "CODE", "NPT", "OPERATIONS"]
     report = pd.DataFrame(columns = columns)
     # Extract table data from the page
+
     table = pdf.pages[0].extract_table()
+    
     RP_FLAG = len(table) + 1
 
     for row_number,row in enumerate(table):
       cleaned_row = [x for x in row if x is not None and x != '']
-      # print(cleaned_row)
 
       #extracting date
       if not(DATE_F):
@@ -46,7 +55,7 @@ def get_report(doc):
           for match in matches:
             date = match.group()
             DATE_F = True
-            break
+            break 
           metrics.append(date)
 
       #extractind DOL,DFS and other metrics
@@ -62,9 +71,14 @@ def get_report(doc):
 
       #parse of the table
       if RP_FLAG <= row_number:
+        # print(cleaned_row)
         if not(cleaned_row):
           break
-        report.loc[len(report)] = cleaned_row
+        if len(cleaned_row) == 7:
+          report.loc[len(report)] = cleaned_row
+        else:
+          cleaned_row.insert(-1, "None")
+          report.loc[len(report)] = cleaned_row
 
 
     return metrics,report
@@ -105,7 +119,7 @@ def DDR_sum(doc):
     Parameters:
     TVD (Total Vertical Depth) - {metrics[3].group(2)}
 
-    The table in csv format that presented below corresponds to events that happened that day. Where column "Operations" is a description of corresponding event with "CODE" tag.
+    The table in csv format that presented below corresponds to events that happened that day. Where column "Operations" is a description of corresponding event with "CODE" tag. "NPT" stands for Non production time.
 
     Briefly summarize the key points from the report. Write the key points from the report. The summary should have numerical data that can be cross referenced with Time Series and for further analysis to be done by an SME(Subject Matter Expert).
     Don't write ANY interlude
@@ -138,7 +152,7 @@ def DDR_sum(doc):
 
 
 if __name__ == "__main__":
-    doc = sys.argv[1]  # Take the first argument as the document path
+    doc = "test.pdf"
     output = DDR_sum(doc)
     print(output)
 
