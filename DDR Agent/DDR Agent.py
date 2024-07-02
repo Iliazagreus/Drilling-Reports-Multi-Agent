@@ -135,6 +135,12 @@ def DDR_sum(doc):
 
     return chat_completion.choices[0].message.content
 
+
+if __name__ == "__main__":
+    doc = sys.argv[1]  # Take the first argument as the document path
+    output = DDR_sum(doc)
+    print(output)
+
 # from typing import List, Optional
 # import json
 
