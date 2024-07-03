@@ -41,12 +41,19 @@ def get_report(doc):
     report = pd.DataFrame(columns = columns)
     # Extract table data from the page
 
+    table_settings = {
+    "vertical_strategy": "lines",
+    "horizontal_strategy": "lines",
+    "join_tolerance": 8,
+    }
+
     table = pdf.pages[0].extract_table()
     
     RP_FLAG = len(table) + 1
 
     for row_number,row in enumerate(table):
-      cleaned_row = [x for x in row if x is not None and x != '']
+      cleaned_row = [x if x != '' else 'None' for x in row if x is not None]
+
 
       #extracting date
       if not(DATE_F):
@@ -72,13 +79,9 @@ def get_report(doc):
       #parse of the table
       if RP_FLAG <= row_number:
         # print(cleaned_row)
-        if not(cleaned_row):
+        if all(x == "None" for x in cleaned_row):
           break
-        if len(cleaned_row) == 7:
-          report.loc[len(report)] = cleaned_row
-        else:
-          cleaned_row.insert(-1, "None")
-          report.loc[len(report)] = cleaned_row
+        report.loc[len(report)] = cleaned_row
 
 
     return metrics,report
@@ -152,7 +155,8 @@ def DDR_sum(doc):
 
 
 if __name__ == "__main__":
-    doc = "test.pdf"
+    doc = "test2.pdf"
+    # metrics, report = (get_report(doc))
     output = DDR_sum(doc)
     print(output)
 
