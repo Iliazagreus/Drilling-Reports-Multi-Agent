@@ -1,3 +1,42 @@
+# %%
+import pandas as pd
+import matplotlib.pyplot as plt 
+#import seaborn as sns
+import numpy as np
+from statsmodels.tsa.stattools import adfuller, kpss
+from scipy import stats
+from datetime import timedelta
+import warnings
+
+# Ignore all warnings
+warnings.filterwarnings('ignore')
+
+# %%
+def split_dataframe_by_sliding_window(df, time_column='Time', window_size='6H', step='15T'):
+        df[time_column] = pd.to_datetime(df[time_column])
+        
+        df = df.sort_values(by=time_column)
+        
+        window_size_timedelta = pd.to_timedelta(window_size)
+        step_timedelta = pd.to_timedelta(step)
+        start_time = df[time_column].min()
+        end_time = df[time_column].max()
+        
+        result = []
+        
+        while start_time <= end_time:
+            window_end_time = start_time + window_size_timedelta
+            window_df = df[(df[time_column] >= start_time) & (df[time_column] < window_end_time)]
+            
+            if not window_df.empty:
+                result.append(window_df)
+            
+            start_time += step_timedelta
+        
+        return result
+
+
+# %%
 class DrillingLogs:
 
     # TODO: sliding window (6 hours) with step size of 15 minutes (1st July)
@@ -242,3 +281,91 @@ class DrillingLogs:
 
   
      
+
+# %%
+  
+    def plot_time_series(self, column_name):
+        df = self.df[['Time', column_name]]
+        df.dropna(subset=column_name)
+        plt.figure(figsize=(10, 6))
+        plt.plot(df['Time'], df[column_name], label=f'Time Series for {column_name}')
+        plt.xlabel('Date')
+        plt.ylabel(column_name)
+        plt.title(f'Time Series Plot for {column_name}')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+    def plot_correlation_heatmap(self, subset):
+        if subset == 'important':
+            plt.figure(figsize=(10, 8))
+            sns.heatmap(self.df[[self.IMPORTANT_COLUMNS]].corr(), annot=False, cmap='coolwarm', vmin=-1, vmax=1)
+            plt.title('Correlation Heatmap')
+            plt.show()
+
+        elif subset == 'all':    
+            plt.figure(figsize=(10, 8))
+            sns.heatmap(self.df.corr(), annot=False, cmap='coolwarm', vmin=-1, vmax=1)
+            plt.title('Correlation Heatmap')
+            plt.show()
+
+# %%
+ddr = DrillingLogs('10s_intervals.csv')
+
+# %%
+print(ddr.get_report(subset='important', date='2020-10-25'))
+
+# %%
+l = ddr.describe(subset='important')
+
+# %%
+l
+
+# %%
+for col in l.columns[1:]:
+    print(f'Statistics for {col}:')
+    print(f'Mean value = {l[col][1]:.3f}')
+    print(f'Minimum value = {l[col][2]:.3f}')
+    print(f'25th percentile = {l[col][3]:.3f}')
+    print(f'Median = {l[col][4]:.3f} ')
+    print(f'75th percentile = {l[col][5]:.3f}')
+    print(f'Maximum value = {l[col][6]:.3f}')
+    print(f'Standard deviation = {l[col][7]:.3f}')
+    print('\n')
+
+# %%
+with open('output.txt','r') as file:
+    content_list = file.readlines()
+for line in content_list:
+    print(line.strip())
+
+# %%
+with open('output.txt', 'r') as file:
+    content_list = file.readlines()
+
+# Now content_list contains each line of the file as an element in the list
+for line in content_list:
+    print(line.strip())  # Print each line (strip() removes newline characters)
+
+# Optionally, you can also process specific parts of the content_list
+# For example, if you want to retrieve statistics for a particular column:
+# Assuming 'Statistics for col1:' is one of the lines
+statistics_for_col1 = []
+for index, line in enumerate(content_list):
+    if line.startswith('Statistics for col1:'):
+        # Collect the lines following this header until a blank line or end of file
+        index += 1
+        while index < len(content_list) and content_list[index].strip():
+            statistics_for_col1.append(content_list[index].strip())
+            index += 1
+        break
+
+# Print or process the collected statistics for col1
+print("Statistics for col1:")
+for stat_line in statistics_for_col1:
+    print(stat_line)
+
+# %%
+
+
+
