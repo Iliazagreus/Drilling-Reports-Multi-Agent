@@ -1,1 +1,244 @@
+class DrillingLogs:
 
+    # TODO: sliding window (6 hours) with step size of 15 minutes (1st July)
+    # TODO: method that takes date and returns all outliers (1st July)
+    
+    IMPORTANT_COLUMNS = [
+        'Time', 'Flow In', 'Bit RPM',
+        'Total Depth', 'Top Drive Torque (ft-lbs)',
+        'ROP Depth/Hour',  'Block Position',
+        'Weight on Bit', 'Depth Hole TVD','Pit Volume Active',
+        'Return Flow', 'Pit G/L Active'
+    ]
+    
+    NUMERICAL_FEATURES= {
+        'Block Position': (0, 1000),  # Feet or meters, depending on the rig setup, always positive
+        'Weight on Bit': (0, 100),  # Tons, complimentory to hookload
+        'Hookload': (50, 600),  # Tons
+        'ROP Depth/Hour': (0, 200),  # Feet per hour, derived and computed automatically
+        'MWD Gamma (API)': (0, 150),  # API units
+        'Top Drive RPM': (0, 300),  # RPM
+        'Top Drive Torque (ft-lbs)': (0, 60000),  # Foot-pounds
+        'Flow In': (0, 1200),  # Gallons per minute
+        'Pump Pressure': (500, 5000),  # PSI
+        'SPM Total': (0, 250),  # Strokes per minute
+        'Pit Volume Active': (0, 1000),  # Barrels
+        'Pit G/L Active': (0, 10),  # Gas/Liquid ratio
+        'Gas Total - units': (0, 100),  # Units of gas detection
+        'Trip Volume Active': (0, 1000),  # Barrels
+        'Trip G/L': (0, 10),  # Gas/Liquid ratio
+        'Return Flow': (0, 1000),  # Gallons per minute
+        'RES PS 2MHZ 18IN': (0, 2000),  # Ohm-meters
+        'RES PS 400KHZ 18IN': (0, 2000),  # Ohm-meters
+        'MWD Inclination': (0, 90),  # Degrees
+        'MWD Azimuth': (0, 360),  # Degrees
+        'H2S 01': (0, 10),  # Parts per million (ppm)
+        'RSS Azimuth': (0, 360),  # Degrees
+        'Total Depth': (0, 30000),  # Feet
+        'Bit Diameter': (4, 20),  # Inches
+        'Bit RPM': (0, 200),  # RPM
+        'Depth Hole TVD': (0, 30000),  # Feet
+        'Differential Pressure': (0, 5000),  # PSI
+        'Downhole Torque': (0, 60000),  # Foot-pounds
+        'MUD TEMP': (0, 200)  # Degrees Fahrenheit
+    }
+
+    CATEGORICAL_FEATURES = {
+        'Slips Set': (0, 1),  # Binary, 0 or 1
+        'On Bottom': (0, 1),  # Binary, 0 or 1
+        'RigMode': (0, 10),  # Categorical, specific to rig operations
+        'ROCKIT - On/Off': (0, 1),  # Binary, 0 or 1
+        'RigEventCode': (0, 9999),  # Categorical, specific to rig events
+        'Drill Mode': (0, 5)  # Categorical, specific to drilling operations
+    }
+
+
+
+    def __init__(self, file_name):
+        if '.csv' in file_name:
+            self.df = pd.read_csv(file_name)
+            self.df['Time'] = pd.to_datetime(self.df['Time'])
+        
+        else:
+            self.df = pd.read_excel(file_name)
+            self.df['Time'] = pd.to_datetime(self.df['Time'])
+        
+        self.df.replace(-999.25, np.nan, inplace = True)
+        self.columns = self.df.columns
+
+    def split_dataframe_by_sliding_window(self, time_column='Time', window_size='6H', step='15T'):
+        self.df[time_column] = pd.to_datetime(self.df[time_column])
+        
+        df = self.df.sort_values(by=time_column)
+        
+        window_size_timedelta = pd.to_timedelta(window_size)
+        step_timedelta = pd.to_timedelta(step)
+        start_time = df[time_column].min()
+        end_time = df[time_column].max()
+        
+        result = []
+        
+        while start_time <= end_time:
+            window_end_time = start_time + window_size_timedelta
+            window_df = df[(df[time_column] >= start_time) & (df[time_column] < window_end_time)]
+            
+            if not window_df.empty:
+                result.append(window_df)
+            
+            start_time += step_timedelta
+        
+        return result
+    
+
+    
+    def get_correlations(self, threshold=0.5, subset = 'important'):
+        if subset == 'important':
+            corr_matrix = self.df[self.IMPORTANT_COLUMNS[1:]].corr()
+        elif subset == 'all':
+            corr_matrix = self.df[[self.df.columns[1:]]].corr()
+
+        # Dictionary to store pairs of correlated features
+        correlated_features = {}
+
+        # Iterate through the correlation matrix
+        for i in range(len(corr_matrix.columns)):
+            for j in range(i + 1, len(corr_matrix.columns)):
+                feature1 = corr_matrix.columns[i]
+                feature2 = corr_matrix.columns[j]
+                correlation = corr_matrix.iloc[i, j]
+                
+                # Check if the correlation is above the threshold
+                if abs(correlation) >= threshold:
+                    correlated_features[(feature1, feature2)] = correlation
+
+        return correlated_features
+    
+    
+    def get_outliers(self, date, subset='important'):
+        
+        result = []
+        
+        if subset == 'important':
+            for col in self.IMPORTANT_COLUMNS[1:]:
+                temp_df = self.df[['Time', col]]
+                filtered_df = temp_df[temp_df['Time'].dt.date == pd.to_datetime(date).date()]
+                filtered_df = filtered_df.drop_duplicates(subset='Time')
+                series = filtered_df.dropna()
+                series_windows = split_dataframe_by_sliding_window(series)
+                for s in series_windows:
+                    # IQR method
+                    Q1 = s[col].quantile(0.25)
+                    Q3 = s[col].quantile(0.75)
+                    IQR = Q3 - Q1
+                    lower_bound = Q1 - 1.5 * IQR
+                    upper_bound = Q3 + 1.5 * IQR
+                    iqr_outliers = s[(s[col] < lower_bound) | (s[col] > upper_bound)]
+                  
+                    # Z-score method
+                    z_scores = stats.zscore(s[col])
+                    z_outliers = s[(np.abs(z_scores) > 3)]
+            
+
+                    # range based method
+                    range_based_outliers = s[(s[col] < self.NUMERICAL_FEATURES[col][0]) | (s[col] > self.NUMERICAL_FEATURES[col][1])]
+                    
+                    final_outliers = pd.merge(iqr_outliers, range_based_outliers, on='Time', how='inner')
+                    final_outliers.rename(columns = {col + '_x' : col}, inplace=True)
+                    final_outliers = final_outliers[['Time', col]]
+
+                    final_outliers = pd.merge(final_outliers, z_outliers, on='Time', how='inner')
+                    final_outliers.rename(columns = {col + '_x' : col}, inplace=True)
+                    final_outliers = final_outliers[['Time', col]]
+                    
+                    for index, row in final_outliers.iterrows():
+                        result.append(f"At {row['Time']} {col} is out of range with value {row[col]}")
+
+        elif subset == 'all':
+            for col in self.NUMERICAL_FEATURES:
+                temp_df = self.df[['Time', col]]
+                filtered_df = temp_df[temp_df['Time'].dt.date == pd.to_datetime(date).date()]
+                filtered_df = filtered_df.drop_duplicates(subset='Time')
+                series = filtered_df.dropna()
+                series_windows = self.split_dataframe_by_sliding_window(series)
+                for s in series_windows:
+                    # IQR method
+                    Q1 = s[col].quantile(0.25)
+                    Q3 = s[col].quantile(0.75)
+                    IQR = Q3 - Q1
+                    lower_bound = Q1 - 1.5 * IQR
+                    upper_bound = Q3 + 1.5 * IQR
+                    iqr_outliers = s[(s[col] < lower_bound) | (s[col] > upper_bound)]
+                  
+                    # Z-score method
+                    z_scores = stats.zscore(s[col])
+                    z_outliers = s[(np.abs(z_scores) > 3)]
+            
+
+                    # range based method
+                    range_based_outliers = s[(s[col] < self.NUMERICAL_FEATURES[col][0]) | (s[col] > self.NUMERICAL_FEATURES[col][1])]
+                    
+                    final_outliers = pd.merge(iqr_outliers, range_based_outliers, on='Time', how='inner')
+                    final_outliers.rename(columns = {col + '_x' : col}, inplace=True)
+                    final_outliers = final_outliers[['Time', col]]
+
+                    final_outliers = pd.merge(final_outliers, z_outliers, on='Time', how='inner')
+                    final_outliers.rename(columns = {col + '_x' : col}, inplace=True)
+                    final_outliers = final_outliers[['Time', col]]
+                    
+                    for index, row in final_outliers.iterrows():
+                        result.append(f"At {row['Time']} {col} is out of range with value {row[col]} ")
+                    
+        result_df = pd.DataFrame({'alert' : result})
+        result_df.drop_duplicates(inplace=True)
+
+        return list(result_df['alert'])
+        
+    
+    def describe(self, subset = 'all'):
+        if subset == 'all':
+            return self.df.describe()
+        elif subset == 'important':
+            return self.df[self.IMPORTANT_COLUMNS].describe()
+        
+    def get_report(self, date, subset='important'):
+        correlations = self.get_correlations(subset=subset)
+        outliers = self.get_outliers(subset=subset, date=date)
+        stat_df = self.describe(subset=subset)
+
+        list_of_correlations = []
+        for k,v in correlations.items():
+            list_of_correlations.append(f'Correlation between {k[0]} and {k[1]} is equal to {v}')
+        
+        stat_df = self.describe(subset=subset)
+        
+
+        lines_to_write = []
+       
+        lines_to_write.append(f'Outliers on date {date} with window_size = 6 hrs and step = 15 min: \n')
+            
+        lines_to_write.append('\n'.join(outliers))
+
+        lines_to_write.append('\n')
+
+        lines_to_write.append(f'Correlations between {subset} features:\n')
+        lines_to_write.append('\n'.join(list_of_correlations))
+        lines_to_write.append('\n')
+
+        for col in stat_df.columns[1:]:
+            lines_to_write.append(f'Statistics for {col}:\n')
+            lines_to_write.append(f'Mean value = {stat_df[col][1]}\n')
+            lines_to_write.append(f'Minimum value = {stat_df[col][2]}\n')
+            lines_to_write.append(f'25th percentile = {stat_df[col][3]}\n')
+            lines_to_write.append(f'Median = {stat_df[col][4]}\n')
+            lines_to_write.append(f'75th percentile = {stat_df[col][5]}\n')
+            lines_to_write.append(f'Maximum value = {stat_df[col][6]}\n')
+            lines_to_write.append(f'Standard deviation = {stat_df[col][7]}\n')
+            lines_to_write.append('\n')
+        print('Report is ready in the same folder!')
+        
+        return ''.join(lines_to_write)
+        
+ 
+
+  
+     
