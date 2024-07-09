@@ -191,23 +191,28 @@ The JSON object must use the schema: {json.dumps(Abstract.model_json_schema(), i
     # return chat_completion.choices[0].message.content
     answer = Abstract.model_validate_json(chat_completion.choices[0].message.content)
 
-    def print_abstract(abstract: Abstract):
-        print("Alert Status:")
-        print(f"- Alertness Level: {abstract.alertStatus.alertness_level}")
-        print(f"- Description: {abstract.alertStatus.level_description}")
+    def print_abstract(abstract: Abstract) -> str:
+        output = []
+        
+        output.append("Alert Status:")
+        output.append(f"- Alertness Level: {abstract.alertStatus.alertness_level}")
+        output.append(f"- Description: {abstract.alertStatus.level_description}")
 
-        print("\nOverall Review:")
-        print(abstract.bigger_picture)
+        output.append("\nBigger Picture:")
+        output.append(abstract.bigger_picture)
 
-        print("\nAnomalies and Safety Concerns:")
+        output.append("\nAnomalies and Safety Concerns:")
         for concern in abstract.anomalies_safety_concerns:
-            print(f"- {concern}")
+            output.append(f"- {concern}")
 
-        print("\nRecommendations:")
+        output.append("\nRecommendations:")
         for recommendation in abstract.recommendations:
-            print(f"- {recommendation}")
+            output.append(f"- {recommendation}")
+
+        return "\n".join(output)
+
     
-    print_abstract(answer)
+    return print_abstract(answer)
 
 
 
