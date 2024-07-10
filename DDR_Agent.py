@@ -111,7 +111,7 @@ def DDR_sum(doc):
     csv_string = report.to_csv(index=False)
 
     date = metrics[0].group(1)
-    day, month, year = date.split('/')
+    month, day, year = date.split('/')
     date = f"{year}-{month}-{day}"
     # content = "Analyse the table in terms of Key Points and Time Breakdowns. \n\n" + csv_string
 
