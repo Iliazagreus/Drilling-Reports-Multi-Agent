@@ -30,7 +30,7 @@ This module is designed for analyzing time series data from drilling logs, focus
 
 3. **`split_dataframe_by_sliding_window(df, time_column, window_size, step)`**: Divides the dataframe into overlapping windows, which allows for localized analysis of data over specified intervals, crucial for detecting temporal patterns or anomalies.
 
-4. **Class **`DrillingLogs`**:
+4. Class **`DrillingLogs`**:
    - **Initialization and file handling**: Loads time series data from CSV or Excel files, normalizing timestamps and handling missing values.
    - **`get_correlations(threshold, subset)`**: Identifies highly correlated features based on a user-specified threshold, helping to understand interdependencies within the data.
    - **`get_outliers(date, subset)`**: Detects outliers using IQR, Z-score, and range-based methods, tailored to either all features or a specified subset of important drilling parameters.
