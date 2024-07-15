@@ -31,6 +31,11 @@ import pdfplumber
 import pandas as pd
 import numpy as np
 
+from groq import Groq
+from pydantic import BaseModel
+import json
+from typing import List
+
 
 def get_report(doc):
    with pdfplumber.open(doc) as pdf:
@@ -105,13 +110,13 @@ def get_report(doc):
 
 # !pip install tensorflow --upgrade
 
-def DDR_sum(doc):
+def DDR_sum(doc, strict_mode = False):
 
     metrics,report = get_report(doc)
     csv_string = report.to_csv(index=False)
 
     date = metrics[0].group(1)
-    month, day, year = date.split('/')
+    day, month, year = date.split('/')
     date = f"{year}-{month}-{day}"
     # content = "Analyse the table in terms of Key Points and Time Breakdowns. \n\n" + csv_string
 
@@ -125,37 +130,44 @@ def DDR_sum(doc):
     # the summary should have numerical data that can be cross referenced with time series for further analysis to be done by an sme
     # """ + csv_string
 
-    system_instruction = """
-
-    You are the Expert Analyst specializing in Drilling Reports in the Best Oil and Gas company in the world.
-
-    You will be given the Daily Drilling Report (DDR) with table of events and necessary parameters of current reports.
-
-    """
-
-    content = f"""
-
-    Parameters:
-    TVD (Total Vertical Depth) - {metrics[3].group(2)}
-
-    The table in csv format that presented below corresponds to events that happened that day. Where column "Operations" is a description of corresponding event with "CODE" tag. "NPT" stands for Non production time.
-
-    Briefly summarize the key points from the report. Write the key points from the report. The summary should have numerical data that can be cross referenced with Time Series and for further analysis to be done by an SME(Subject Matter Expert).
-    Don't write ANY prelude
-    """ + csv_string
-
-
     with open('Groq.txt', 'r') as file:
-        lines = file.readlines()
+      lines = file.readlines()
 
-
-
-    from groq import Groq
     client = Groq(api_key=lines[0])
 
+    if strict_mode:
 
+      class Summarization(BaseModel):
+          summary_of_operation: str
+          time_table: List[str]
+          key_events: List[str]  
+          drilling_progress: str 
 
-    chat_completion = client.chat.completions.create(
+      system_instruction = f"""
+
+You are the Expert Analyst specializing in Drilling Reports at a leading Oil and Gas company.
+
+You will analyze the Daily Drilling Report (DDR) which includes a table of events and various operational parameters. Your task is to succinctly summarize the key points from the report, focusing particularly on numerical data that are crucial for drilling operations. This summary will aid cross-referencing with Time Series data and facilitate further analysis by an SME (Subject Matter Expert).
+
+The JSON schema you must follow includes:
+- summary_of_operation: Provide a concise summary in 1-2 sentences of the activities during the reporting period.
+- time_table: List all events that occurred during the day with their respective durations, formatted as "Event: Duration (hours)". Ensure each entry is brief but informative, accurately reflecting the time spent on each activity.
+- key_events: Identify and list the critical events of the day, including relevant numerical values where applicable.
+- drilling_progress: Provide a brief comparative analysis of the drilling progress from the start to the end of the given report period.
+      
+      The JSON object must use the schema: {json.dumps(Summarization.model_json_schema(), indent=2)}
+
+      """     
+#  Ensure your output strictly adheres to the following JSON structure, filling each field accurately.
+      content = f"""
+
+      Parameters:
+      TVD (Total Vertical Depth) - {metrics[3].group(2)}
+
+      The table in csv format that presented below corresponds to events that happened that day. Where column "Operations" is a description of corresponding event with "CODE" tag. "NPT" stands for Non production time.
+      """ + csv_string
+
+      chat_completion = client.chat.completions.create(
         messages=[
           {
               "role": "system",
@@ -168,14 +180,93 @@ def DDR_sum(doc):
           }
         ],
         model="llama3-70b-8192",
-       temperature=0.1,
+        # model="mixtral-8x7b-32768",
+       temperature=0,
+       stream=False,
+        # Enable JSON mode by setting the response format
+       response_format={"type": "json_object"},
+       
     )
+    # return chat_completion.choices[0].message.content
+      # answer = chat_completion.choices[0].message.content
+      answer = Summarization.model_validate_json(chat_completion.choices[0].message.content)
 
-    return date, chat_completion.choices[0].message.content
+
+      def print_summary(summary: Summarization) -> str:
+          output = []
+
+          output.append("Summary of Operation:")
+          output.append(summary.summary_of_operation)
+
+          output.append("\nTime Table:")
+          for event in summary.time_table:
+              output.append(f"- {event}")
+
+          output.append("\nKey Events:")
+          for event in summary.key_events:
+              output.append(f"- {event}")
+
+          output.append("\nDrilling Progress:")
+          output.append(summary.drilling_progress)
+
+          return "\n".join(output)
+
+      return date, print_summary(answer)
+    
+    
+    else:
+
+      system_instruction = """
+
+      You are the Expert Analyst specializing in Drilling Reports in the Best Oil and Gas company in the world.
+
+      You will be given the Daily Drilling Report (DDR) with table of events and necessary parameters of current reports.
+
+      """
+
+      # tvd = "None"
+      # for match in metrics:
+      #   if "TVD" in match.group():
+      #     tvd = match.group(2)
+      
+      # print(tvd)
+      
+
+      content = f"""
+
+      Parameters:
+      TVD (Total Vertical Depth) - {metrics[3].group(2)}
+
+      The table in csv format that presented below corresponds to events that happened that day. Where column "Operations" is a description of corresponding event with "CODE" tag. "NPT" stands for Non production time.
+
+      Briefly summarize the key points from the report. Write the key points from the report. The summary should have numerical data that can be cross referenced with Time Series and for further analysis to be done by an SME(Subject Matter Expert).
+      Don't write ANY prelude
+      """ + csv_string
+
+
+
+      chat_completion = client.chat.completions.create(
+          messages=[
+            {
+                "role": "system",
+                "content": system_instruction
+            },
+            
+            {
+                "role": "user",
+                "content": content,
+            }
+          ],
+          model="llama3-70b-8192",
+        temperature=0.1,
+      )
+
+      return date, chat_completion.choices[0].message.content
 
 
 if __name__ == "__main__":
     doc = "test2.pdf"
-    # metrics, report = (get_report(doc))
-    # output = DDR_sum(doc)
-    # print(output)
+
+    metrics, report = (get_report(doc))
+    output = DDR_sum(doc, strict_mode=True)
+    print(output[1])
