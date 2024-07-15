@@ -1,6 +1,16 @@
 # Drilling-Reports-Multi-Agent
 
 # How it works?
+<!--
+<details>
+<summary><span style="font-size:20px;">File A</span> - <span style="font-size:16px;">Overview</span></summary>
+
+### Details for File A
+Content or description about what File A includes or its purpose goes here. You can include further Markdown formatting, links, images, or any other relevant information.
+
+</details>
+-->
+
 
 ## DDR Agent
 
