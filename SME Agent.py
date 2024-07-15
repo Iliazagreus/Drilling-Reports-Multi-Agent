@@ -194,25 +194,26 @@ The JSON object must use the schema: {json.dumps(Abstract.model_json_schema(), i
     def print_abstract(abstract: Abstract) -> str:
         output = []
         
-        output.append("Alert Status:")
+        output.append("**Alert Status:**")
         output.append(f"- Alertness Level: {abstract.alertStatus.alertness_level}")
         output.append(f"- Description: {abstract.alertStatus.level_description}")
 
-        output.append("\nBigger Picture:")
+        output.append("\n**Overview:**")
         output.append(abstract.bigger_picture)
 
-        output.append("\nAnomalies and Safety Concerns:")
+        output.append("\n**Anomalies and Safety Concerns:**")
         for concern in abstract.anomalies_safety_concerns:
             output.append(f"- {concern}")
 
-        output.append("\nRecommendations:")
+        output.append("\n**Recommendations:**")
         for recommendation in abstract.recommendations:
             output.append(f"- {recommendation}")
 
         return "\n".join(output)
-
     
-    return print_abstract(answer)
+    output = print_abstract(answer)
+    alertness_description = answer.alertStatus.level_description
+    return output, alertness_description
 
 
 
