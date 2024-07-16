@@ -116,7 +116,7 @@ def DDR_sum(doc, strict_mode = False):
     csv_string = report.to_csv(index=False)
 
     date = metrics[0].group(1)
-    day, month, year = date.split('/')
+    month, day, year = date.split('/')
     date = f"{year}-{month}-{day}"
     # content = "Analyse the table in terms of Key Points and Time Breakdowns. \n\n" + csv_string
 
@@ -195,18 +195,18 @@ The JSON schema you must follow includes:
       def print_summary(summary: Summarization) -> str:
           output = []
 
-          output.append("Summary of Operation:")
+          output.append("**Summary of Operation:**")
           output.append(summary.summary_of_operation)
 
-          output.append("\nTime Table:")
+          output.append("\n**Time Table:**")
           for event in summary.time_table:
               output.append(f"- {event}")
 
-          output.append("\nKey Events:")
+          output.append("\n**Key Events:**")
           for event in summary.key_events:
               output.append(f"- {event}")
 
-          output.append("\nDrilling Progress:")
+          output.append("\n**Drilling Progress:**")
           output.append(summary.drilling_progress)
 
           return "\n".join(output)
