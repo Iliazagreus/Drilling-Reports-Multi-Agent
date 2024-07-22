@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADNOC Drilling</title>
+    <link rel="shortcut icon" type="image/png" href="/static/favicon.png"/>
+    <style>
+        body {
+            margin: 0;
+            font-family: Abtos;
+        }
+        .columns {
+            column-count: 2;
+            column-gap: 10px;
+        }
+        .columns * {
+            break-inside: avoid-column;
+            text-align: left;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            margin: 20px 0;
+        }
+        .progress-bar {
+            width: 0;
+            height: 30px;
+            background-color: #1a4f92;
+            text-align: center;
+            line-height: 30px;
+            color: black;
+            transition: width 0.3s;
+        }
+        .step-container {
+            display: none;
+        }
+        .step-container.active {
+            display: block;
+        }
+        #openWindowBtn {
+            background-color: #ffffff;
+            position: fixed;
+            top: 50px;
+            right: 20px;
+            z-index: 1000;
+            font-family: Abtos;
+        }
+        .window {
+            position: fixed;
+            top: -200px;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            background-color: #1a4f92;
+            color: white;
+            overflow-y: auto;
+            transition: 0.3s;
+            padding: 20px;
+            z-index: 1000;
+        }
+        .window h2 {
+            margin-top: 0;
+            margin-bottom: 2px;
+        }
+        .window p {
+            margin-top: 2px;
+            margin-bottom: 15px;
+        }
+        .window.show {
+            top: 0;
+        }
+        #closeWindowBtn {
+            background-color: #ffffff;
+            color: rgb(0, 0, 0);
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            font-family: Abtos;
+        }
+        .column-container {
+            display: flex;
+            flex-direction: row;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+        .column-container > div {
+            flex: 1;
+            padding: 10px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+        .button-container button {
+            padding: 10px;
+            background-color: #1a4f92;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-family: Abtos;
+        }
+        #toggleButton{
+            position: fixed;
+            right: 20px;
+        }
+        #toggleSection{
+            display: none;
+        }
+        .alert-circle {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+            margin-top: 30px;
+        }
+        .alert-green {
+            background-color: #52f1a4; 
+        }
+        .alert-yellow {
+            background-color: #f9de65; 
+        }
+        .alert-red {
+            background-color: #f75252; 
+        }
+    </style>
+</head>
+<body>
+    <table style="width: 100%; border-spacing: 0;">
+        <tr style="background-color: #1a4f92 ; color: white;">
+            <td style="padding: 10px; display: flex; align-items: center; padding-right: 0;">
+                <img src="/static/logo.png" alt="Logo" width="70" height="100">
+                <h4 style="text-align: center; font-size: 25px; margin: 10px; font-family: Abtos; font-weight: normal;">ADNOC Drilling Multi-Agent</h4>
+            </td>            
+            <td style="text-align: left; font-size: 25px; padding-left: 0;"></td>
+        </tr>
+        <tr style="background-color: #1a4f92 ; color: white;" width="200px">
+            <td width="200px" colspan="2" style="font-size: 13px; text-align: center;">
+                LLMs can produce errors, therefore, it is advisable to verify the results before taking any actions based on them.
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="background-color: #f1f1f1;">
+                <div class="button-container">
+                    <form id="upload-form" enctype="multipart/form-data" style="font-family: Abtos;">
+                        <input style="font-family: Abtos;" type="file" name="files" multiple accept=".pdf, .csv">
+                        <button type="submit">Upload</button>
+                    </form>
+                    <button id="toggleButton">Show Insights</button>
+                </div>
+                <div id="messages"></div>
+                <ul style="list-style-type: none; font-family: Abtos;" id="uploaded-files"></ul>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <div class="progress-container">
+                    <div id="progress-bar" class="progress-bar">0%</div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="text-align: left; border: 2px solid #1a4f92; font-size: 16px; padding: 30px; vertical-align: top;">
+                <h2 style="font-weight: 100; font-size: 20px; text-align: center;">
+                    <span id="alert-circle-left" class="alert-circle"></span>
+                    Abstract Report
+                    <span id="alert-circle-right" class="alert-circle"></span>
+                </h2>                
+                <div id="final-report" class="step-container">
+                    <div class="alert">
+                        <div id="fr-content"></div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <div>
+        <tr class="toggleSection">
+            <td colspan="2" style="text-align: left;font-size: 16px; padding: 30px; border: 2px solid #3475E0; vertical-align: top;">
+                <h2 style="font-weight: 100; font-size: 20px; text-align: center;">SME Insights</h2>
+                <div id="sme-insights" class="step-container">
+                    <div class="alert">
+                        <div id="sme-content"></div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr class="toggleSection">
+            <td width="50%" style="font-size: 15px; padding: 30px; border: 2px solid #7bacfa; text-align: left; vertical-align: top;">
+                <h2 style="font-weight: 100; font-size: 20px; text-align: center;">DDR Insights</h2>
+                <div id="ddr-insights" class="step-container">
+                    <div class="alert">
+                        <div id="ddr-content"></div>
+                    </div>
+                </div>
+            </td>
+            <td width="50%" style="font-size: 15px; text-align: left; border: 2px solid #6b9cd7; padding: 30px; vertical-align: top;">
+                <h2 style="font-weight: 100; font-size: 20px; text-align: center; padding-right: 0; position: relative; z-index: 1;">Time Series Insights</h2>
+                <div id="time-series-insights" class="step-container">
+                    <div class="alert">
+                        <div id="ts-content"></div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr class="toggleSection">
+            <td colspan="2">
+                <div>
+                    <iframe src="http://127.0.0.1:8050/" width="100%" height="800px" frameborder="0"></iframe>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Sliding Window -->
+    <button id="openWindowBtn">What is this?</button>
+    <div id="slidingWindow" class="window">
+        <button id="closeWindowBtn">Close</button>
+        <div class="column-container">
+            <div class="columns">
+                <h2>Project Description</h2>
+                    <p style="padding: 10px;">
+                        A multi-agent AI system of LLMs designed to summarize significant events from time series data 
+                        and Daily Drilling Reports (DDR). This system will extract and highlight key insights from the drilling data 
+                        in natural language, enabling quick access to essential information and facilitating faster analysis.            
+                    </p>
+                <h2>How it works</h2>
+                <p style="padding: 10px;">
+                    User will upload Time Series Data from a CSV file and DDR from a pdf file. The agents then process the data and output insights at each different level. 
+                    The end product is an abstarct that summarizes the data and whether there are anamolies.           
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const progressBar = document.getElementById('progress-bar');
+            const steps = ['ddr-insights', 'time-series-insights', 'sme-insights', 'final-report'];
+            const progressValues = [25, 50, 75, 100];
+            let currentStep = 0;
+
+            var sections = document.querySelectorAll('.toggleSection');
+            sections.forEach(function(section) {
+                section.style.display = 'none';
+            });
+
+            function updateProgress() {
+                const progress = progressValues[currentStep];
+                progressBar.style.width = progress + '%';
+                progressBar.textContent = progress + '%';
+            }
+
+            function showNextStep() {
+                if (currentStep < steps.length) {
+                    const stepId = steps[currentStep];
+                    document.getElementById(stepId).classList.add('active');
+                    updateProgress();
+                    currentStep++;
+                }
+            }
+
+            function showStep(stepId) {
+                document.getElementById(stepId).classList.add('active');
+                updateProgress();
+            }
+
+            document.getElementById('upload-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(this);
+
+                fetch('/insightsver', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('messages').innerHTML = data.messages.map(msg => `<div class="alert">${msg}</div>`).join('');
+                    document.getElementById('uploaded-files').innerHTML = data.files.map(file => `<li>${file}</li>`).join('');
+                    
+                    if (data.output_DDR && data.output_TS) {
+                        currentStep++;
+                        document.getElementById('ddr-content').innerHTML = data.output_DDR.split('\n').map(line => `<p>${line}</p>`).join('');
+                        showStep('ddr-insights');
+                        document.getElementById('ts-content').innerHTML = data.output_TS.split('\n').map(line => `<p>${line}</p>`).join('');
+                        showStep('time-series-insights');
+
+                    }
+                    else if (data.output_DDR) {
+                        document.getElementById('ddr-content').innerHTML = data.output_DDR.split('\n').map(line => `<p>${line}</p>`).join('');
+                        showStep('ddr-insights');
+                        currentStep++;
+                    }
+                    else if (data.output_TS) {
+                        document.getElementById('ts-content').innerHTML = data.output_TS.split('\n').map(line => `<p>${line}</p>`).join('');
+                        showStep('time-series-insights');
+                        currentStep++;
+                    }
+                    if(data.output_SME && data.output_FR){
+                        currentStep++;
+                        document.getElementById('sme-content').innerHTML = data.output_SME.split('\n').map(line => `<p>${line}</p>`).join('');
+                        showStep('sme-insights');
+                        document.getElementById('fr-content').innerHTML = data.output_FR.split('\n').map(line => `<p>${line}</p>`).join('');
+                        showNextStep();
+                        showStep('final-report');
+                    }
+
+                    const alertCircleLeft = document.getElementById('alert-circle-left');
+                    const alertCircleRight = document.getElementById('alert-circle-right');
+                    if (data.alertness === 'Good') {
+                        alertCircleLeft.classList.add('alert-green');
+                        alertCircleRight.classList.add('alert-green');
+                    } else if (data.alertness === 'Warning') {
+                        alertCircleLeft.classList.add('alert-yellow');
+                        alertCircleRight.classList.add('alert-yellow');
+                    } else if (data.alertness === 'Bad') {
+                        alertCircleLeft.classList.add('alert-red');
+                        alertCircleRight.classList.add('alert-red');
+                    }
+
+                })
+                .catch(error => console.error('Error:', error)); 
+            });
+
+            // Sliding window functionality
+            const openWindowBtn = document.getElementById('openWindowBtn');
+            const closeWindowBtn = document.getElementById('closeWindowBtn');
+            const slidingWindow = document.getElementById('slidingWindow');
+
+            openWindowBtn.addEventListener('click', function() {
+                slidingWindow.classList.add('show');
+            });
+
+            closeWindowBtn.addEventListener('click', function() {
+                slidingWindow.classList.remove('show');
+            });
+
+            // Toggle Insights Section
+            document.getElementById('toggleButton').addEventListener('click', function() {
+            var sections = document.querySelectorAll('.toggleSection');
+            var shouldShow = sections[0].style.display === 'none';
+            sections.forEach(function(section) {
+                section.style.display = shouldShow ? 'table-row' : 'none';
+            });
+            this.textContent = shouldShow ? 'Hide Insights' : 'Show Insights';
+            });
+        });
+    </script>
+</body>
+</html>
