@@ -23,9 +23,14 @@ def home2():
 
     # Sequence of actions to take place when upload button pressed
     if request.method == 'POST':
-        file_names, messages = []
-        output_DDR, output_DDR_markdown, output_TS_markdown, output_SME, output_FR  = ""
+        file_names = []
+        output_DDR = ""
         output_TS = ()
+        output_DDR_markdown = ""
+        output_TS_markdown = ""  
+        messages = []
+        output_SME =""
+        output_FR =""
         dateDDR='2020-10-25' # Default date
 
         if 'files' not in request.files:
@@ -88,9 +93,14 @@ def home2():
 def home():
     # Sequence of actions to take place when upload button pressed
     if request.method == 'POST':
-        file_names, messages = []
-        output_DDR, output_DDR_markdown, output_TS_markdown, output_SME, output_FR  = ""
+        file_names = []
+        output_DDR = ""
         output_TS = ()
+        output_DDR_markdown = ""
+        output_TS_markdown = ""  
+        messages = []
+        output_SME =""
+        output_FR =""
         dateDDR='2020-10-25' # Default date
 
         if 'files' not in request.files:
