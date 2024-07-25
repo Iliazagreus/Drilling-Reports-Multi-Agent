@@ -1,5 +1,21 @@
 # Drilling-Reports-Multi-Agent
 
+# Overview
+
+This project involves a multi-agent system utilizing various LLM Agents, designed to summarize significant events from Time Series data and Daily Drilling Reports (DDR). The system extracts and highlights key insights from the drilling data, presenting them in a concise and consistently structured abstract report. Accessible via a web application, after uploading files the users can view outputs from each agent, related graphs, and the final abstract report. This system enables quick access to essential information and facilitates faster and more efficient analysis, aiding decision-makers in understanding critical operational aspects.
+
+The solution was developed as part of an internship at ADNOC.
+# Features
+<!--
+
+    List of features and capabilities.
+-->
+# Getting Started
+<!--
+    Prerequisites
+    Installation instructions
+    Basic usage examples
+-->
 # How it works?
 <!--
 <details>
