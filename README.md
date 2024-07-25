@@ -11,6 +11,8 @@ The solution was developed as part of an internship at ADNOC.
     List of features and capabilities.
 -->
 # Getting Started
+<!-- Maybe add picture of the application -->
+
 <!--
     Prerequisites
     Installation instructions
@@ -26,6 +28,8 @@ Content or description about what File A includes or its purpose goes here. You 
 
 </details>
 -->
+
+
 
 
 ## DDR Agent
