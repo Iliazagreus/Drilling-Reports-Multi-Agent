@@ -2,7 +2,7 @@
 
 # Overview
 
-This project involves a multi-agent system utilizing various LLM Agents, designed to summarize significant events from Time Series data and Daily Drilling Reports (DDR). The system extracts and highlights key insights from the drilling data, presenting them in a concise and consistently structured abstract report. Accessible via a web application, after uploading files the users can view outputs from each agent, related graphs, and the final abstract report. This system enables quick access to essential information and facilitates faster and more efficient analysis, aiding decision-makers in understanding critical operational aspects.
+This project involves a Multi-Agent System utilizing various LLM Agents, designed to summarize significant events from Time Series data and Daily Drilling Reports (DDR). The system extracts and highlights key insights from the drilling data, presenting them in a concise and consistently structured abstract report. Accessible via a web application, after uploading files the users can view outputs from each agent, related graphs, and the final abstract report. This approach enables quick access to essential information and facilitates faster and more efficient analysis, aiding decision-makers in understanding critical operational aspects.
 
 The solution was developed as part of an internship at ADNOC.
 # Features
@@ -66,4 +66,8 @@ This module is a crucial component of a multi-agent system designed to analyze a
 1. **`SME_Agent(input_DDR, input_TS)`**: This function takes as input the outputs from the Drilling Data Report (DDR) Agent and Time Series (TS) Agent. It processes these inputs to provide a comprehensive analysis from the perspective of a Subject Matter Expert (SME). The SME is tasked with identifying anomalies, safety concerns, or noteworthy trends from the integrated data, and making recommendations for further action. This analysis is then output to the Writer Agent, which formats it into a consistent, predefined JSON structure for further use.
 
 2. **`Writer_Agent(input_SME)`**: After the SME Agent provides its analysis, the Writer Agent formats this analysis into a structured JSON format. This function uses a predefined JSON schema to ensure that the output adheres to specific standards required for further processing or presentation. The structured output includes detailed sections on alert status, a bigger picture overview, identified anomalies and safety concerns, and recommendations.
+
+# Data
+This project utilized open-source data from the **Utah dataset**, which is accessible via the following [link](https://gdr.openei.org/submissions/1283). It contains Daily Drilling Reports and corresponding Time Series data with features like ROP and Weight on Bit, captured every 10 seconds.
+
 
