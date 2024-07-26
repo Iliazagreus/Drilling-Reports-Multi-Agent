@@ -15,16 +15,12 @@ The solution was developed as part of an internship at ADNOC HQ.
 After downloading the files, follow these steps:
 
 1. Ensure the following Python libraries are installed:
-- numpy
-- pandas
+- numpy, pandas, scipy
 - pdfplumber
 - groq
 - flask
-- matplotlib
-- seaborn
-- scipy
-- pydantic
-- json
+- matplotlib, seaborn
+- pydantic, json
 - re
 - markdown2
   
