@@ -12,7 +12,34 @@ The solution was developed as part of an internship at ADNOC.
 -->
 # Getting Started
 <!-- Maybe add picture of the application -->
+After downloading the files, follow these steps:
 
+1. Set the file directory correctly. Ensure the following files are in the same folder as home.py:
+
+- DDR agent
+- Time Series agent
+- SME agent
+- 10s_interval.csv (from the dataset below)
+- Your Gorq API key (saved as Gorq.txt)
+
+2. Install the required libraries:
+
+- flask
+- markdown2
+- re
+- pdfplumber
+- pandas
+- numpy
+- json
+- pydantic
+- matplotlib
+- scipy
+  
+3. Run home.py
+
+The web application will be accessible at: [link](http://127.0.0.1:5000/insights)
+
+4. Upload the DDR PDF file and the Time Series CSV file from the dataset on the web application.
 <!--
     Prerequisites
     Installation instructions
