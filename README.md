@@ -2,7 +2,7 @@
 
 # Overview
 
-This project involves a Multi-Agent System utilizing various LLM Agents, designed to summarize significant events from Time Series data and Daily Drilling Reports (DDR). The system extracts and highlights key insights from the drilling data, presenting them in a concise and consistently structured abstract report. Accessible via a web application, after uploading files the users can view outputs from each agent, related graphs, and the final abstract report. This approach enables quick access to essential information and facilitates faster and more efficient analysis, aiding decision-makers in understanding critical operational aspects.
+This project involves a multi-agent system that combines LLM agents with other specialized agents, designed to summarize significant events from Time Series data and Daily Drilling Reports (DDR). The system extracts and highlights key insights from the drilling data, presenting them in a concise and consistently structured abstract report. Accessible via a web application, after uploading files the users can view outputs from each agent, related graphs, and the final abstract report. This approach enables quick access to essential information and facilitates faster and more efficient analysis, aiding decision-makers in understanding critical operational aspects.
 
 The solution was developed as part of an internship at ADNOC HQ.
 # Features
@@ -14,27 +14,28 @@ The solution was developed as part of an internship at ADNOC HQ.
 <!-- Maybe add picture of the application -->
 After downloading the files, follow these steps:
 
-1. Set the file directory correctly. Ensure the following files are in the same folder as home.py:
+1. Ensure the following Python libraries are installed:
+- numpy
+- pandas
+- pdfplumber
+- groq
+- flask
+- matplotlib
+- seaborn
+- scipy
+- pydantic
+- json
+- re
+- markdown2
+  
+2. Set the file directory correctly. Ensure the following files are in the same folder as home.py:
 
 - DDR agent
 - Time Series agent
 - SME agent
-- 10s_interval.csv (from the dataset below)
-- Your Gorq API key (saved as Gorq.txt)
+- Create `Groq.txt` and place your Groq API key inside.
+- DDR .pdf and Time Series .csv if you want to use the dataset from below.
 
-2. Install the required libraries:
-
-- flask
-- markdown2
-- re
-- pdfplumber
-- pandas
-- numpy
-- json
-- pydantic
-- matplotlib
-- scipy
-  
 3. Run home.py
    
    The web application will be accessible at: http://127.0.0.1:5000/insights
@@ -65,7 +66,7 @@ This module focuses on extracting data from PDF reports and analyzing it with LL
 
 1. **`get_report(doc)`**: Extracts metrics and operational data from a given PDF document (`doc`). The function uses `pdfplumber` to handle PDF operations, extracting data like dates and specific metrics using regex patterns, and table data based on a defined schema. This table is processed to handle missing values and detect specific rows, which mark sections of the report for detailed parsing.
 
-2. **`DDR_sum(doc)`**: Takes a document as input and uses the `get_report` function to extract data. It then formats this data into a CSV string and constructs a summary with detailed drilling parameters, which can be cross-referenced with time series data. This function integrates a multi-agent system through an API call to generate summaries using a Large Language Model.
+2. **`DDR_sum(doc)`**: Takes a document as input and uses the `get_report` function to extract data. It then formats this data into a CSV string and constructs a summary with detailed drilling parameters, which can be cross-referenced with time series data. This function integrates a multi-agent system through an [Groq](https://groq.com/) API call to generate summaries using a Large Language Model.
 
 ## TS Agent
 
