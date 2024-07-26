@@ -21,7 +21,7 @@ After downloading the files, follow these steps:
 - flask
 - matplotlib, seaborn
 - pydantic, json
-- re
+- regex
 - markdown2
   
 2. Set the file directory correctly. Ensure the following files are in the same folder as home.py:
