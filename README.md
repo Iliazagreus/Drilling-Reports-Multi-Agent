@@ -18,7 +18,7 @@ After downloading the files, follow these steps:
 - numpy, pandas, scipy
 - pdfplumber
 - groq
-- flask
+- flask, dash
 - matplotlib, seaborn
 - pydantic, json
 - regex
