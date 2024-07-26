@@ -36,8 +36,7 @@ After downloading the files, follow these steps:
 - scipy
   
 3. Run home.py
-
-The web application will be accessible at: http://127.0.0.1:5000/insights
+   The web application will be accessible at: http://127.0.0.1:5000/insights
 
 4. Upload the DDR PDF file and the Time Series CSV file from the dataset on the web application.
 <!--
