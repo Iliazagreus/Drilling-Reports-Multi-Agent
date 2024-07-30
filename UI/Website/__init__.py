@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 import numpy as np
 from .views import views
 def create_page():
-    file_path = '10s_intervals.csv' # Change file name to desired Time Series file name
+    file_path = 'UI/Website/10s_intervals.csv' # Change file name to desired Time Series file name
     data = pd.read_csv(file_path)
 
 
