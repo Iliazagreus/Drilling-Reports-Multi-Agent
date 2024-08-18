@@ -7,8 +7,9 @@ This project involves a multi-agent system that combines LLM agents with other s
 The solution was developed as part of an internship at ADNOC HQ.
 
 ![Showcase](Showcase.png)
-# Features
 <!--
+# Features
+
 
     List of features and capabilities.
 -->
